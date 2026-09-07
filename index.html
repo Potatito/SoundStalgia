@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoundStalgia | Tu obsesión musical analógica</title>
+    <style>
+        /* ==========================================================================
+           ESTILOS GLOBALES Y PALETA MUSICAL RETRO (Rojo, Negro, Blanco)
+           ========================================================================== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Courier New', Courier, monospace, sans-serif;
+        }
+
+        :root {
+            --bg-color: #111111;
+            --card-bg: #FFFFFF;
+            --text-color: #111111;
+            --accent-red: #E63946;
+            --accent-dark-red: #9B0000;
+            --border-style: 2px solid #111111;
+            --shadow-retro: 5px 5px 0px #E63946;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: #FFFFFF;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            /* Fondo con patrón de surcos de vinilo */
+            background-image: repeating-radial-gradient(circle at center, #1a1a1a 0, #1a1a1a 2px, #111111 3px, #111111 6px);
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 580px;
+            background: var(--card-bg);
+            color: var(--text-color);
+            border: 3px solid #000;
+            box-shadow: 8px 8px 0px var(--accent-red);
+            padding: 25px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* ==========================================================================
+           ELEMENTOS VISUALES MUSICALES (Cassette / Ecualizador / VU Meter)
+           ========================================================================== */
+        .tape-deck {
+            background: #1A1A1A;
+            border: 2px solid #000;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .cassette-wheels {
+            display: flex;
+            justify-content: space-around;
+            width: 80%;
+            margin-bottom: 10px;
+        }
+
+        .wheel {
+            width: 45px;
+            height: 45px;
+            border: 4px dashed #FFF;
+            border-radius: 50%;
+            background: #333;
+            animation: spin 4s linear infinite paused;
+        }
+
+        .wheel.playing {
+            animation-play-state: running;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        .equalizer {
+            display: flex;
+            align-items: flex-end;
+            gap: 4px;
+            height: 25px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .bar {
+            width: 8px;
+            height: 20%;
+            background-color: var(--accent-red);
+            transition: height 0.1s ease;
+        }
+
+        /* ==========================================================================
+           EFECTOS VISUALES DINÁMICOS POR RESPUESTA
+           ========================================================================== */
+        .fx-synth {
+            animation: fx-synth-anim 0.4s ease;
+        }
+        @keyframes fx-synth-anim {
+            0% { background-color: #00FFFF; }
+            100% { background-color: var(--card-bg); }
+        }
+
+        .fx-rock {
+            animation: fx-rock-anim 0.3s ease;
+        }
+        @keyframes fx-rock-anim {
+            0% { transform: translate(-4px, 4px); }
+            50% { transform: translate(4px, -4px); }
+            100% { transform: translate(0, 0); }
+        }
+
+        .fx-folk {
+            animation: fx-folk-anim 0.4s ease;
+        }
+        @keyframes fx-folk-anim {
+            0% { background-color: #2A9D8F; }
+            100% { background-color: var(--card-bg); }
+        }
+
+        .fx-dream {
+            animation: fx-dream-anim 0.4s ease;
+        }
+        @keyframes fx-dream-anim {
+            0% { opacity: 0.3; filter: blur(2px); }
+            100% { opacity: 1; filter: blur(0); }
+        }
+
+        /* ==========================================================================
+           BOTONES Y COMPONENTES
+           ========================================================================== */
+        .btn-retro {
+            background-color: #111111;
+            color: #FFFFFF;
+            border: 2px solid #000;
+            padding: 14px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: 4px 4px 0px var(--accent-red);
+            width: 100%;
+            margin-top: 15px;
+            transition: all 0.1s;
+        }
+
+        .btn-retro:hover {
+            background-color: var(--accent-red);
+            color: #FFF;
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px #000;
+        }
+
+        /* ==========================================================================
+           PANTALLA 1: INICIO
+           ========================================================================== */
+        #screen-welcome { text-align: center; }
+
+        .logo {
+            font-size: 2.2rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+            border-bottom: 3px solid #111;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .logo span { color: var(--accent-red); }
+
+        .music-notes-banner {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            letter-spacing: 5px;
+        }
+
+        /* ==========================================================================
+           PANTALLA 2: CUESTIONARIO
+           ========================================================================== */
+        #screen-quiz { display: none; }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            border-bottom: 2px solid #111;
+            padding-bottom: 8px;
+            margin-bottom: 20px;
+            font-size: 0.85rem;
+        }
+
+        .question-title {
+            font-size: 1.15rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            line-height: 1.3;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option-btn {
+            background: #FFF;
+            color: #111;
+            border: 2px solid #111;
+            padding: 12px 15px;
+            text-align: left;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.1s;
+        }
+
+        .option-btn:hover {
+            background-color: #111;
+            color: #FFF;
+        }
+
+        .option-btn::before {
+            content: "♫";
+            color: var(--accent-red);
+        }
+
+        /* ==========================================================================
+           PANTALLA 3: TICKET DE CONCIERTO + METRICA DE RAREZA
+           ========================================================================== */
+        #screen-result { display: none; }
+
+        .ticket {
+            border: 3px solid #111;
+            padding: 20px;
+            background-color: #FFF;
+            position: relative;
+            box-shadow: 4px 4px 0px #111;
+        }
+
+        .ticket::before, .ticket::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            width: 18px;
+            height: 18px;
+            background-color: var(--bg-color);
+            border: 2px solid #111;
+            border-radius: 50%;
+            transform: translateY(-50%);
+        }
+        .ticket::before { left: -11px; }
+        .ticket::after { right: -11px; }
+
+        .ticket-header {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 2px dashed #111;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .ticket-title {
+            font-size: 1.3rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .rarity-box {
+            background-color: #111;
+            color: #FFF;
+            padding: 8px 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .rarity-bar-bg {
+            width: 50%;
+            height: 10px;
+            background: #333;
+            border: 1px solid #FFF;
+        }
+
+        .rarity-bar-fill {
+            height: 100%;
+            background: var(--accent-red);
+            width: 0%;
+            transition: width 1s ease;
+        }
+
+        .personality-desc {
+            font-size: 0.88rem;
+            line-height: 1.5;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--accent-red);
+            padding-left: 10px;
+        }
+
+        .ticket-footer {
+            border-top: 2px dashed #111;
+            padding-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+
+        .barcode {
+            font-size: 1.4rem;
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container" id="app-box">
+        
+        <!-- REPRODUCTOR ANALÓGICO SUPERIOR -->
+        <div class="tape-deck">
+            <div class="cassette-wheels">
+                <div class="wheel" id="wheel-left"></div>
+                <div class="wheel" id="wheel-right"></div>
+            </div>
+            <div class="equalizer">
+                <div class="bar" id="b1"></div>
+                <div class="bar" id="b2"></div>
+                <div class="bar" id="b3"></div>
+                <div class="bar" id="b4"></div>
+                <div class="bar" id="b5"></div>
+                <div class="bar" id="b6"></div>
+            </div>
+        </div>
+
+        <!-- PANTALLA 1: INICIO -->
+        <div id="screen-welcome">
+            <div class="music-notes-banner">♩ ♪ ♫ ♬ ♭ ♮</div>
+            <h1 class="logo">SOUND<span>STALGIA</span></h1>
+            <p style="margin-bottom: 15px; font-size: 0.95rem; font-weight: bold;">Descubre el perfil de tu obsesión musical actual.</p>
+            <p style="margin-bottom: 20px; font-size: 0.8rem; color: #555;">10 Preguntas rápidas // Sin registro // Test directo</p>
+            <button class="btn-retro" onclick="startQuiz()">► Conoce tu música interior</button>
+        </div>
+
+        <!-- PANTALLA 2: CUESTIONARIO -->
+        <div id="screen-quiz">
+            <div class="quiz-header">
+                <span>SOUNDSTALGIA // TRACK TEST</span>
+                <span id="question-number">TRACK 01/10</span>
+            </div>
+            <div class="question-title" id="question-text">Cargando pregunta...</div>
+            <div class="options-list" id="options-container"></div>
+        </div>
+
+        <!-- PANTALLA 3: RESULTADO (TICKET) -->
+        <div id="screen-result">
+            <div class="ticket" id="ticket-card">
+                <div class="ticket-header">
+                    <span>SOUNDSTALGIA PASS</span>
+                    <span id="ticket-date">ADMIT ONE</span>
+                </div>
+                
+                <h2 class="ticket-title" id="result-title">TÍTULO DEL RESULTADO</h2>
+                
+                <!-- MÉTRICA DE RAREZA / FRECUENCIA DE GUSTO -->
+                <div class="rarity-box">
+                    <span>RAREZA DEL GUSTO:</span>
+                    <span id="rarity-text">0% Común</span>
+                    <div class="rarity-bar-bg">
+                        <div class="rarity-bar-fill" id="rarity-fill"></div>
+                    </div>
+                </div>
+
+                <!-- DESCRIPCIÓN DE PERSONALIDAD -->
+                <p class="personality-desc" id="result-desc">Analizando rasgos de personalidad...</p>
+                
+                <div class="ticket-footer">
+                    <span>VIP PASS // NO REFUNDS</span>
+                    <span class="barcode">|||| | ||||| |||</span>
+                </div>
+            </div>
+
+            <button class="btn-retro" onclick="resetQuiz()">↻ Repetir Test</button>
+        </div>
+
+    </div>
+
+    <script>
+        // PREGUNTAS Y OPCIONES DIRECTAS
+        const questions = [
+            {
+                q: "¿Cómo escuchas música la mayor parte del tiempo?",
+                options: [
+                    { text: "Con audífonos a todo volumen aislando el mundo.", type: "A" },
+                    { text: "En altavoces para que retumbe la habitación.", type: "B" },
+                    { text: "De fondo mientras trabajo, leo o camino.", type: "C" },
+                    { text: "En bucle, la misma canción durante días.", type: "D" }
+                ]
+            },
+            {
+                q: "¿Qué te atrapa de inmediato en una canción?",
+                options: [
+                    { text: "El ritmo sintético y los bajos potentes.", type: "A" },
+                    { text: "Las guitarras marcadas y la energía cruda.", type: "B" },
+                    { text: "La voz sensible y la letra profunda.", type: "C" },
+                    { text: "Una melodía nostálgica o envolvente.", type: "D" }
+                ]
+            },
+            {
+                q: "¿En qué momento tu obsesión musical alcanza su punto máximo?",
+                options: [
+                    { text: "De noche, cuando la ciudad duerme.", type: "A" },
+                    { text: "En un concierto en vivo o una fiesta.", type: "B" },
+                    { text: "Un día lluvioso junto a la ventana.", type: "C" },
+                    { text: "Durante un viaje largo en carretera.", type: "D" }
+                ]
+            },
+            {
+                q: "¿Qué haces cuando encuentras un artista que te apasiona?",
+                options: [
+                    { text: "Exploro toda su discografía secreta y remezclas.", type: "A" },
+                    { text: "Busco videos de sus presentaciones en vivo.", type: "B" },
+                    { text: "Analizo las letras y busco qué lo inspiró.", type: "C" },
+                    { text: "Guardo sus álbumes con una estética visual bonita.", type: "D" }
+                ]
+            },
+            {
+                q: "¿Cómo defines tu biblioteca de música actual?",
+                options: [
+                    { text: "Oscura, bailable e hipnótica.", type: "A" },
+                    { text: "Ruidosa, enérgica y rebelde.", type: "B" },
+                    { text: "Acústica, íntima y tranquila.", type: "C" },
+                    { text: "Soñadora, melancólica y cinematográfica.", type: "D" }
+                ]
+            },
+            {
+                q: "Si fueras un instrumento musical, serías:",
+                options: [
+                    { text: "Un sintetizador vintage de los años 80.", type: "A" },
+                    { text: "Una guitarra eléctrica distorsionada.", type: "B" },
+                    { text: "Una guitarra acústica de madera gastada.", type: "C" },
+                    { text: "Un piano de cola con eco profundo.", type: "D" }
+                ]
+            },
+            {
+                q: "¿Qué buscas sentir al darle 'Play'?",
+                options: [
+                    { text: "Adrenalina y ritmo futurista.", type: "A" },
+                    { text: "Liberar tensión y gritar el coro.", type: "B" },
+                    { text: "Calma interior y comprensión emocional.", type: "C" },
+                    { text: "Transportarme a otra época o recuerdo.", type: "D" }
+                ]
+            },
+            {
+                q: "¿Qué opinas si tu canción favorita se vuelve muy popular en redes?",
+                options: [
+                    { text: "Cambio a una canción más underground.", type: "A" },
+                    { text: "Me da igual, la disfruto más si suena fuerte.", type: "B" },
+                    { text: "Siento que pierde un poco de su magia íntima.", type: "C" },
+                    { text: "Me alegra que otros sientan esa nostalgia.", type: "D" }
+                ]
+            },
+            {
+                q: "Tu accesorio musical indispensable:",
+                options: [
+                    { text: "Audífonos con cancelación de ruido.", type: "A" },
+                    { text: "Una playera de tu banda preferida.", type: "B" },
+                    { text: "Un libreta para escribir lo que sientes.", type: "C" },
+                    { text: "Una cámara análoga o fotos de formato antiguo.", type: "D" }
+                ]
+            },
+            {
+                q: "Para ti, la música es principalmente:",
+                options: [
+                    { text: "Un estímulo eléctrico para el cerebro.", type: "A" },
+                    { text: "Una explosión de actitud e identidad.", type: "B" },
+                    { text: "Un refugio para el alma.", type: "C" },
+                    { text: "Una máquina del tiempo emocional.", type: "D" }
+                ]
+            }
+        ];
+
+        // RESULTADOS CON DETALLE DE PERSONALIDAD Y RAREZA ESTIMADA
+        const results = {
+            A: {
+                title: "SYNTH NOCTURNO & ELECTRÓNICO",
+                rarityText: "18% Común (Gusto Seleccionado)",
+                rarityPercent: "18%",
+                desc: "PERSONALIDAD: Eres una persona analítica, independiente y profundamente introspectiva. Te atrae lo moderno pero mantienes un aura reservada. Sueles procesar tus pensamientos en soledad durante la noche. Tienes una sensibilidad estética aguda y encuentras belleza en el orden y los ritmos precisos.",
+                color: "#E0F7FA",
+                accent: "#006064",
+                fxClass: "fx-synth"
+            },
+            B: {
+                title: "ROCK GARAGE & ENERGÍA CRUDA",
+                rarityText: "35% Común (Gusto Popular / Enérgico)",
+                rarityPercent: "35%",
+                desc: "PERSONALIDAD: Eres directo, apasionado y transparente. No te gustan las pretensiones ni las cosas complicadas. Expresas tus emociones sin filtro y valoras la lealtad y la autenticidad por encima de todo. Tienes una energía contagiosa y necesitas vías de escape intensas para el estrés.",
+                color: "#FFE0B2",
+                accent: "#E65100",
+                fxClass: "fx-rock"
+            },
+            C: {
+                title: "FOLK ÍNTIMO & INDIE ACOGERDOR",
+                rarityText: "22% Común (Gusto Introspectivo)",
+                rarityPercent: "22%",
+                desc: "PERSONALIDAD: Posees una empatía elevada y una profunda madurez emocional. Observas los pequeños detalles que otros pasan por alto. Eres reflexivo, tranquilo y un excelente escuchador. Buscas conexiones genuinas con las personas y prefieres la paz interior antes que la atención masiva.",
+                color: "#E8F5E9",
+                accent: "#1B5E20",
+                fxClass: "fx-folk"
+            },
+            D: {
+                title: "DREAM-POP & NOSTALGIA ANÁLOGA",
+                rarityText: "12% Común (Gusto Muy Raro / Soñador)",
+                rarityPercent: "12%",
+                desc: "PERSONALIDAD: Eres un soñador natural, altamente creativo y nostálgico. A menudo sientes que naciste en la época equivocada. Valoras la estética visual, la poesía y los recuerdos. Tienes una mente imaginativa capaz de convertir experiencias cotidianas en escenas de película.",
+                color: "#FCE4EC",
+                accent: "#880E4F",
+                fxClass: "fx-dream"
+            }
+        };
+
+        let currentQuestionIndex = 0;
+        let scores = { A: 0, B: 0, C: 0, D: 0 };
+        let eqInterval;
+
+        const appBox = document.getElementById('app-box');
+        const wheelLeft = document.getElementById('wheel-left');
+        const wheelRight = document.getElementById('wheel-right');
+
+        function startQuiz() {
+            scores = { A: 0, B: 0, C: 0, D: 0 };
+            currentQuestionIndex = 0;
+            document.getElementById('screen-welcome').style.display = 'none';
+            document.getElementById('screen-result').style.display = 'none';
+            document.getElementById('screen-quiz').style.display = 'block';
+            
+            // Iniciar animación del casete y ecualizador
+            wheelLeft.classList.add('playing');
+            wheelRight.classList.add('playing');
+            startEqualizer();
+
+            loadQuestion();
+        }
+
+        function startEqualizer() {
+            eqInterval = setInterval(() => {
+                for (let i = 1; i <= 6; i++) {
+                    const bar = document.getElementById(`b${i}`);
+                    if (bar) {
+                        const randomHeight = Math.floor(Math.random() * 85) + 15;
+                        bar.style.height = `${randomHeight}%`;
+                    }
+                }
+            }, 120);
+        }
+
+        function stopEqualizer() {
+            clearInterval(eqInterval);
+            for (let i = 1; i <= 6; i++) {
+                const bar = document.getElementById(`b${i}`);
+                if (bar) bar.style.height = '20%';
+            }
+        }
+
+        function loadQuestion() {
+            const q = questions[currentQuestionIndex];
+            document.getElementById('question-number').innerText = `TRACK ${(currentQuestionIndex + 1).toString().padStart(2, '0')}/10`;
+            document.getElementById('question-text').innerText = q.q;
+            
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+
+            q.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt.text;
+                btn.onclick = () => selectOption(opt.type);
+                container.appendChild(btn);
+            });
+        }
+
+        function selectOption(type) {
+            scores[type]++;
+            
+            // EFECTO VISUAL SEGÚN EL TIPO DE RESPUESTA
+            const fxClass = results[type].fxClass;
+            appBox.classList.add(fxClass);
+            setTimeout(() => appBox.classList.remove(fxClass), 400);
+
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                loadQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            document.getElementById('screen-quiz').style.display = 'none';
+            document.getElementById('screen-result').style.display = 'block';
+
+            // Detener ruedas del reproductor
+            wheelLeft.classList.remove('playing');
+            wheelRight.classList.remove('playing');
+            stopEqualizer();
+
+            // Calcular ganador
+            let highestType = 'A';
+            let maxScore = -1;
+            for (const type in scores) {
+                if (scores[type] > maxScore) {
+                    maxScore = scores[type];
+                    highestType = type;
+                }
+            }
+
+            const res = results[highestType];
+
+            // Renderizar datos de resultado
+            document.getElementById('result-title').innerText = res.title;
+            document.getElementById('result-desc').innerText = res.desc;
+            document.getElementById('rarity-text').innerText = res.rarityText;
+            
+            // Animación de la barra de rareza
+            setTimeout(() => {
+                document.getElementById('rarity-fill').style.width = res.rarityPercent;
+            }, 200);
+
+            // Fecha actual
+            const now = new Date();
+            document.getElementById('ticket-date').innerText = `DATE: ${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear()}`;
+
+            // Personalizar tarjeta
+            const ticketCard = document.getElementById('ticket-card');
+            ticketCard.style.backgroundColor = res.color;
+            document.getElementById('result-title').style.color = res.accent;
+        }
+
+        function resetQuiz() {
+            document.getElementById('rarity-fill').style.width = '0%';
+            startQuiz();
+        }
+    </script>
+</body>
+</html>
